@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.Extensions.Options;
 
@@ -9,6 +10,7 @@ namespace LiveReload
     [HtmlTargetElement("live-reload", TagStructure = TagStructure.WithoutEndTag)]
     public class LiveReloadTagHelper : TagHelper
     {
+        public const string LiveReloadLocalScriptPath = "/live-reloader/live-script.js";
         private LiveReloadOptions options;
 
         public LiveReloadTagHelper(IOptions<LiveReloadOptions> options)
@@ -21,6 +23,13 @@ namespace LiveReload
             try
             {
                 output.TagName = null;
+#if LOCALDEV
+                if (options.UseFile)
+                {
+                    output.Content.SetHtmlContent($"<script src='{LiveReloadLocalScriptPath}'></script>");
+                    return;
+                }
+#endif
                 output.Content.SetHtmlContent(Properties.Resources.live_reload.Replace("/live-reload", options.Url));
             }
             catch (Exception e)
