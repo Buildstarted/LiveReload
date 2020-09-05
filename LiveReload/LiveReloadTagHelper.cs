@@ -23,14 +23,14 @@ namespace LiveReload
             try
             {
                 output.TagName = null;
-#if LOCALDEV
-                if (options.UseFile)
-                {
-                    output.Content.SetHtmlContent($"<script src='{LiveReloadLocalScriptPath}'></script>");
-                    return;
-                }
-#endif
-                output.Content.SetHtmlContent(Properties.Resources.live_reload.Replace("/live-reload", options.Url));
+                output.Content.SetHtmlContent("<script>" +
+                        "let live_reload_options = {" +
+                            $"url: '{options.Url}'," +
+                            $"saveFormData: {options.SaveFormData.ToString().ToLower()}" +
+                            $"inlineUpdatesWhenPossible: {options.InlineUpdatesWhenPossible.ToString().ToLower()}" +
+                        "};" +
+                    "</script>" +
+                    $"<script src='{LiveReloadLocalScriptPath}'></script>");
             }
             catch (Exception e)
             {

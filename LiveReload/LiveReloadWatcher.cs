@@ -63,7 +63,7 @@ namespace LiveReload
                         name = args.Name.Substring(args.Name.IndexOf("\\") + 1);
                     }
 
-                    OnChanged?.Invoke(name + $"?{Guid.NewGuid().ToString()}", extension == "css" || extension == "jpg" || extension == "png");
+                    OnChanged?.Invoke(name + $"?{Guid.NewGuid().ToString()}", options.InlineUpdateExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase));
                     return;
                 }
             }

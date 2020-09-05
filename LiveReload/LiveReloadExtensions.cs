@@ -31,30 +31,38 @@ namespace LiveReload
         {
             builder.UseWebSockets();
 
-#if LOCALDEV
             builder.Use(async (context, next) =>
             {
                 if (context.Request.Path == LiveReloadTagHelper.LiveReloadLocalScriptPath)
                 {
-                    var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "live-reload.js");
-                    if (File.Exists(path))
+                    var options = builder.ApplicationServices.GetService<IOptions<LiveReloadOptions>>();
+#if LOCALDEV
+                    if (options.Value.UseFile)
                     {
-                        context.Response.ContentType = "application/javascript";
-                        using var file = File.OpenRead(path);
-                        var buffer = new byte[1024];
-                        var read = -1;
-                        while ((read = await file.ReadAsync(buffer, 0, 1024)) != 0)
+                        var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "live-reload.js");
+                        if (File.Exists(path))
                         {
-                            await context.Response.Body.WriteAsync(buffer, 0, read);
-                        }
+                            context.Response.ContentType = "application/javascript";
+                            using var file = File.OpenRead(path);
+                            var buffer = new byte[1024];
+                            var read = -1;
+                            while ((read = await file.ReadAsync(buffer, 0, 1024)) != 0)
+                            {
+                                await context.Response.Body.WriteAsync(buffer, 0, read);
+                            }
 
-                        return;
+                            return;
+                        }
                     }
+#endif
+
+                    context.Response.ContentType = "application/javascript";
+                    await context.Response.WriteAsync(Properties.Resources.live_reload);
+                    return;
                 }
 
                 await next();
             });
-#endif
 
             builder.Use(async (context, next) =>
             {

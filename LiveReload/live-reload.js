@@ -1,10 +1,15 @@
 ﻿//LiveReload by Buildstarted 2020
 (() => {
+    //live_reload_options
+    //  url
+    //  saveFormData
+    //  inlineUpdatesWhenPossible
+
     let requestUrl = new URL(window.location.href);
     let hostname = requestUrl.hostname;
     let port = requestUrl.port;
     let protocol = requestUrl.protocol === 'https:' ? 'wss' : 'ws';
-    let url = `${protocol}://${hostname}${port ? `:${port}` : ""}/live-reload`;
+    let url = `${protocol}://${hostname}${port ? `:${port}` : ""}/${live_reload_options.url}`;
 
     let socket = new WebSocket(url);
 
@@ -21,34 +26,34 @@
         return obj;
     };
 
-    const forms = document.querySelectorAll("form");
-    for (let i = 0; i < forms.length; i++) {
-        const form = forms[i];
-        const data = window.localStorage.getItem(`__live-reload-form-data-${i}`);
-        window.localStorage.removeItem(`__live-reload-form-data-${i}`);
-        const result = JSON.parse(data);
-        for (let key in result) {
-            const element = form.querySelector(`[name='${key}']`);
-            if (element) {
-                if (element.tagName === "SELECT") {
-                    const options = element.options;
-                    for (let option, j = 0; option = options[j]; j++) {
-                        if (option.value === result[key]) {
-                            element.selectedIndex = j;
-                            break;
+    if (live_reload_options.saveFormData) {
+        const forms = document.querySelectorAll("form");
+        for (let i = 0; i < forms.length; i++) {
+            const form = forms[i];
+            const data = window.localStorage.getItem(`__live-reload-form-data-${i}`);
+            window.localStorage.removeItem(`__live-reload-form-data-${i}`);
+            const result = JSON.parse(data);
+            for (let key in result) {
+                const element = form.querySelector(`[name='${key}']`);
+                if (element) {
+                    if (element.tagName === "SELECT") {
+                        const options = element.options;
+                        for (let option, j = 0; option = options[j]; j++) {
+                            if (option.value === result[key]) {
+                                element.selectedIndex = j;
+                                break;
+                            }
                         }
+                    } else if (element.tagName === "INPUT") {
+                        element.value = result[key];
                     }
-                } else if (element.tagName === "INPUT") {
-                    element.value = result[key];
                 }
             }
         }
     }
 
-
     socket.onmessage = (e) => {
-        console.log(e.data);
-        if (e.data.startsWith('reload')) {
+        if (e.data.startsWith('reload') && live_reload_options.inlineUpdatesWhenPossible) {
             let path = e.data.split('|')[1];
 
             let filename = path.split('?')[0];
@@ -71,12 +76,13 @@
             }
         } else {
             try {
-                const forms = document.querySelectorAll("form");
-                for (let i = 0; i < forms.length; i++) {
-                    const form = forms[i];
-                    window.localStorage.setItem(`__live-reload-form-data-${i}`, JSON.stringify(serializeForm(form)));
+                if (live_reload_options.saveFormData) {
+                    const forms = document.querySelectorAll("form");
+                    for (let i = 0; i < forms.length; i++) {
+                        const form = forms[i];
+                        window.localStorage.setItem(`__live-reload-form-data-${i}`, JSON.stringify(serializeForm(form)));
+                    }
                 }
-
             } catch (e) {
                 console.error(e);
             }
