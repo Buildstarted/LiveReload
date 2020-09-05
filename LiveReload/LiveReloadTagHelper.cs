@@ -30,7 +30,7 @@ namespace LiveReload
                             $"inlineUpdatesWhenPossible: {options.InlineUpdatesWhenPossible.ToString().ToLower()}" +
                         "};" +
                     "</script>" +
-                    $"<script src='{LiveReloadLocalScriptPath}'></script>");
+                    $"<script src='{LiveReloadLocalScriptPath}?{Guid.NewGuid().ToString().Substring(0, 8)}'></script>");
             }
             catch (Exception e)
             {
