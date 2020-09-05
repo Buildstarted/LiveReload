@@ -34,7 +34,7 @@ namespace LiveReload
 #if LOCALDEV
             builder.Use(async (context, next) =>
             {
-                if (context.Request.Path == "/live-reloader/live-script.js")
+                if (context.Request.Path == LiveReloadTagHelper.LiveReloadLocalScriptPath)
                 {
                     var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "live-reload.js");
                     if (File.Exists(path))
