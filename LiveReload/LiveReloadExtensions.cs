@@ -1,7 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.IO;
+using System.Net.Mime;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -30,6 +31,31 @@ namespace LiveReload
         {
             builder.UseWebSockets();
 
+#if LOCALDEV
+            builder.Use(async (context, next) =>
+            {
+                if (context.Request.Path == "/live-reloader/live-script.js")
+                {
+                    var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "live-reload.js");
+                    if (File.Exists(path))
+                    {
+                        context.Response.ContentType = "application/javascript";
+                        using var file = File.OpenRead(path);
+                        var buffer = new byte[1024];
+                        var read = -1;
+                        while ((read = await file.ReadAsync(buffer, 0, 1024)) != 0)
+                        {
+                            await context.Response.Body.WriteAsync(buffer, 0, read);
+                        }
+
+                        return;
+                    }
+                }
+
+                await next();
+            });
+#endif
+
             builder.Use(async (context, next) =>
             {
                 var options = builder.ApplicationServices.GetService<IOptions<LiveReloadOptions>>();
@@ -52,6 +78,8 @@ namespace LiveReload
                     {
                         context.Response.StatusCode = 400;
                     }
+
+                    return;
                 }
 
                 await next();
