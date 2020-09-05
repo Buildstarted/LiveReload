@@ -22,6 +22,11 @@ namespace LiveReload
         {
             try
             {
+                string randomid = "";
+#if LIVE_RELOAD_DEV
+                randomid = "?" + Guid.NewGuid().ToString().Substring(0, 8);
+#endif
+
                 output.TagName = null;
                 output.Content.SetHtmlContent("<script>" +
                         "let live_reload_options = {" +
@@ -30,7 +35,7 @@ namespace LiveReload
                             $"inlineUpdatesWhenPossible: {options.InlineUpdatesWhenPossible.ToString().ToLower()}" +
                         "};" +
                     "</script>" +
-                    $"<script src='{LiveReloadLocalScriptPath}?{Guid.NewGuid().ToString().Substring(0, 8)}'></script>");
+                    @$"<script src='{LiveReloadLocalScriptPath}{randomid}'></script>");
             }
             catch (Exception e)
             {
