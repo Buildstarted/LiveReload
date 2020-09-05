@@ -11,12 +11,6 @@
     let protocol = requestUrl.protocol === 'https:' ? 'wss' : 'ws';
     let url = `${protocol}://${hostname}${port ? `:${port}` : ""}/${live_reload_options.url}`;
 
-    let socket = new WebSocket(url);
-
-    const reconnect = () => {
-        socket = new WebSocket(url);
-    };
-
     const serializeForm = (form) => {
         let obj = {};
         const formData = new FormData(form);
@@ -52,7 +46,7 @@
         }
     }
 
-    socket.onmessage = (e) => {
+    const messageReceived = (e) => {
         if (e.data.startsWith('reload') && live_reload_options.inlineUpdatesWhenPossible) {
             let path = e.data.split('|')[1];
 
@@ -61,7 +55,6 @@
             let elements = document.querySelectorAll(`[src*='${filename}'], [href*='${filename}']`);
             for (let i = 0; i < elements.length; i++) {
                 let element = elements[i];
-                console.log(element);
                 if (element.tagName === "LINK") {
                     //css
                     let link = document.createElement('link');
@@ -90,7 +83,15 @@
         }
     };
 
-    socket.onclose = (e) => { reconnect(); };
+    const socketClosed = (e) => { connect(); };
+    
+    const connect = () => {
+        let socket = new WebSocket(url);
+        socket.addEventListener("close", socketClosed);
+        socket.addEventListener("message", messageReceived);
+    }
+
+    connect();
 
     //socket.onopen = (e) => {{ console.log('opened', e); }};
     //socket.onclose = (e) => {{ console.log('close', e); }};

@@ -26,7 +26,7 @@ namespace LiveReload
                 output.Content.SetHtmlContent("<script>" +
                         "let live_reload_options = {" +
                             $"url: '{options.Url}'," +
-                            $"saveFormData: {options.SaveFormData.ToString().ToLower()}" +
+                            $"saveFormData: {options.SaveFormData.ToString().ToLower()}," +
                             $"inlineUpdatesWhenPossible: {options.InlineUpdatesWhenPossible.ToString().ToLower()}" +
                         "};" +
                     "</script>" +
