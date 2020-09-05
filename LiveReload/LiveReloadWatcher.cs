@@ -28,22 +28,22 @@ namespace LiveReload
             {
                 if (started) return;
                 started = true;
+            }
 
-                foreach (var path in options.Paths)
+            foreach (var path in options.Paths)
+            {
+                rootpath = Path.Combine(Environment.CurrentDirectory, path);
+
+                if (Directory.Exists(rootpath))
                 {
-                    rootpath = Path.Combine(Environment.CurrentDirectory, path);
-
-                    if (Directory.Exists(rootpath))
-                    {
-                        var watcher = new System.IO.FileSystemWatcher(rootpath, "*");
-                        watcher.EnableRaisingEvents = true;
-                        watcher.IncludeSubdirectories = true;
-                        watcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
-                        watcher.Changed += OnChangedImpl;
-                        watcher.Created += OnChangedImpl;
-                        watcher.Deleted += OnChangedImpl;
-                        watcher.Renamed += OnChangedImpl;
-                    }
+                    var watcher = new System.IO.FileSystemWatcher(rootpath, "*");
+                    watcher.EnableRaisingEvents = true;
+                    watcher.IncludeSubdirectories = true;
+                    watcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
+                    watcher.Changed += OnChangedImpl;
+                    watcher.Created += OnChangedImpl;
+                    watcher.Deleted += OnChangedImpl;
+                    watcher.Renamed += OnChangedImpl;
                 }
             }
         }
@@ -97,7 +97,8 @@ namespace LiveReload
                 try
                 {
                     var msg = await socket.ReceiveAsync(buffer, CancellationToken.None);
-                } catch { }
+                }
+                catch { }
             }
         }
     }
