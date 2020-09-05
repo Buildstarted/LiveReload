@@ -29,16 +29,22 @@ namespace LiveReload
                 if (started) return;
                 started = true;
 
-                rootpath = Path.Combine(Environment.CurrentDirectory, options.Path);
+                foreach (var path in options.Paths)
+                {
+                    rootpath = Path.Combine(Environment.CurrentDirectory, path);
 
-                var watcher = new System.IO.FileSystemWatcher(rootpath, "*");
-                watcher.EnableRaisingEvents = true;
-                watcher.IncludeSubdirectories = true;
-                watcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
-                watcher.Changed += OnChangedImpl;
-                watcher.Created += OnChangedImpl;
-                watcher.Deleted += OnChangedImpl;
-                watcher.Renamed += OnChangedImpl;
+                    if (Directory.Exists(rootpath))
+                    {
+                        var watcher = new System.IO.FileSystemWatcher(rootpath, "*");
+                        watcher.EnableRaisingEvents = true;
+                        watcher.IncludeSubdirectories = true;
+                        watcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
+                        watcher.Changed += OnChangedImpl;
+                        watcher.Created += OnChangedImpl;
+                        watcher.Deleted += OnChangedImpl;
+                        watcher.Renamed += OnChangedImpl;
+                    }
+                }
             }
         }
 
