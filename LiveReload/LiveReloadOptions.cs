@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Microsoft.Extensions.Hosting;
 
 namespace LiveReload
 {
@@ -11,7 +12,7 @@ namespace LiveReload
         public bool InlineUpdatesWhenPossible { get; set; }
         public List<string> InlineUpdateExtensions { get; set; }
 #if LIVE_RELOAD_DEV
-        public bool UseFile { get; set; }
+        public string UseFile { get; set; }
 #endif
 
         public LiveReloadOptions()
@@ -22,6 +23,7 @@ namespace LiveReload
             InlineUpdateExtensions = new List<string> { "jpg", "png", "css", "mp4", "webm" };
             SaveFormData = false;
             InlineUpdatesWhenPossible = true;
+            UseFile = null;
         }
     }
 }

@@ -1,25 +1,32 @@
 ﻿using System;
+using System.Buffers;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.WebSockets;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Options;
 
 namespace LiveReload
 {
     public class LiveReloadWatcher
     {
+        private readonly IHostingEnvironment env;
         private readonly LiveReloadOptions options;
         private bool started;
-        private readonly ArraySegment<byte> refresh;
+        private List<FileSystemWatcher> watchers;
 
-        public LiveReloadWatcher(IOptions<LiveReloadOptions> options)
+        public event OnChangedDelegate OnChanged;
+        public delegate void OnChangedDelegate(int hash, ReadOnlySpan<char> filename, bool inlinereload);
+
+        public LiveReloadWatcher(IOptions<LiveReloadOptions> options, IHostingEnvironment env)
         {
+            this.env = env;
             this.options = options.Value;
             started = false;
-            this.refresh = new ArraySegment<byte>(Encoding.ASCII.GetBytes("refresh"));
+            watchers = new List<FileSystemWatcher>();
         }
 
         public void Start()
@@ -44,60 +51,41 @@ namespace LiveReload
                     watcher.Created += OnChangedImpl;
                     watcher.Deleted += OnChangedImpl;
                     watcher.Renamed += OnChangedImpl;
+                    watchers.Add(watcher);
                 }
             }
         }
 
-        private async void OnChangedImpl(object sender, FileSystemEventArgs args)
+        private void OnChangedImpl(object sender, FileSystemEventArgs args)
         {
-            await Task.Delay(TimeSpan.FromMilliseconds(150));
-
-            var path = args.FullPath;
             foreach (var extension in options.Extensions)
             {
-                if (path.EndsWith(extension, StringComparison.OrdinalIgnoreCase))
+                if (args.FullPath.EndsWith(extension, StringComparison.OrdinalIgnoreCase))
                 {
-                    var name = args.Name;
-                    if (args.Name.StartsWith("wwwroot"))
+                    var index = 0;
+                    //TODO: optimize this
+                    if (args.FullPath.AsSpan().StartsWith(env.WebRootPath.AsSpan()))
                     {
-                        name = args.Name.Substring(args.Name.IndexOf("\\") + 1);
+                        index = env.WebRootPath.Length;
                     }
 
-                    OnChanged?.Invoke(name + $"?{Guid.NewGuid().ToString().Substring(0, 8)}", options.InlineUpdateExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase));
+                    OnChanged?.Invoke(args.FullPath.GetHashCode(), args.FullPath.AsSpan(index), options.InlineUpdateExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase));
                     return;
                 }
             }
         }
 
-        public delegate Task OnChangedDelegate(string path, bool inlinereload);
-
-        public event OnChangedDelegate OnChanged;
-
-        public async Task Handle(WebSocket socket)
+        public async Task Handle(FileSocketListener listener)
         {
-            var tcs = new TaskCompletionSource<bool>();
-            OnChanged += async (path, inlinereload) =>
-            {
-                if (inlinereload)
-                {
-                    await socket.SendAsync(new ArraySegment<byte>(Encoding.ASCII.GetBytes($"reload|{path}")), WebSocketMessageType.Text, true, default);
-                }
-                else
-                {
-                    await socket.SendAsync(refresh, WebSocketMessageType.Text, true, default);
-                }
-            };
+            OnChanged += listener.Update;
 
-            var buffer = new ArraySegment<byte>(new byte[512]);
-
-            while (socket.State == WebSocketState.Open)
+            var lastping = DateTime.MinValue;
+            while (listener.IsOpen)
             {
-                try
-                {
-                    var msg = await socket.ReceiveAsync(buffer, CancellationToken.None);
-                }
-                catch { }
+                await listener.Receive();
             }
+
+            OnChanged -= listener.Update;
         }
     }
 }

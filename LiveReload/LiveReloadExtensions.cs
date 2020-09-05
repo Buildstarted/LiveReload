@@ -37,9 +37,9 @@ namespace LiveReload
                 {
                     var options = builder.ApplicationServices.GetService<IOptions<LiveReloadOptions>>();
 #if LIVE_RELOAD_DEV
-                    if (options.Value.UseFile)
+                    if (options.Value.UseFile != null)
                     {
-                        var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "live-reload.js");
+                        var path = options.Value.UseFile;
                         if (File.Exists(path))
                         {
                             context.Response.ContentType = "application/javascript";
@@ -78,9 +78,15 @@ namespace LiveReload
 
                     if (context.WebSockets.IsWebSocketRequest)
                     {
-                        Console.WriteLine($"[{DateTime.Now}] Connection started");
+#if LIVE_RELOAD_DEV
+                        Console.WriteLine($"[{DateTime.Now}] Connection started from {context.Connection.RemoteIpAddress}");
+#endif
                         var socket = await context.WebSockets.AcceptWebSocketAsync();
-                        await livereloadwatcher.Handle(socket);
+                        using var listener = new FileSocketListener(socket);
+                        await livereloadwatcher.Handle(listener);
+#if LIVE_RELOAD_DEV
+                        Console.WriteLine($"[{DateTime.Now}] Connection closed from {context.Connection.RemoteIpAddress}");
+#endif
                     }
                     else
                     {
