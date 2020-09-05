@@ -7,7 +7,6 @@ namespace LiveReload
         public string Url { get; set; }
         public List<string> Paths { get; set; }
         public List<string> Extensions { get; set; }
-        public List<string> AdditionalExtensions { get; set; }
 #if LOCALDEV
         public bool UseFile { get; set; }
 #endif
@@ -17,7 +16,6 @@ namespace LiveReload
             Url = "/live-reload";
             Paths = new List<string> { "./" };
             Extensions = new List<string> { "cshtml", "css", "js" };
-            AdditionalExtensions = new List<string>();
         }
     }
 }

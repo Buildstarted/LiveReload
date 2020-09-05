@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
@@ -62,7 +63,7 @@ namespace LiveReload
                         name = args.Name.Substring(args.Name.IndexOf("\\") + 1);
                     }
 
-                    OnChanged?.Invoke(name + $"?{Guid.NewGuid().ToString()}", extension == "css");
+                    OnChanged?.Invoke(name + $"?{Guid.NewGuid().ToString()}", extension == "css" || extension == "jpg" || extension == "png");
                     return;
                 }
             }

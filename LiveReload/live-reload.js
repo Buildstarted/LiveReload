@@ -42,14 +42,28 @@
 
 
     socket.onmessage = (e) => {
+        console.log(e.data);
         if (e.data.startsWith('reload')) {
             let path = e.data.split('|')[1];
-            let link = document.createElement('link');
-            link.setAttribute('href', path);
-            link.setAttribute('rel', 'stylesheet');
-            link.setAttribute('type', 'text/css');
 
-            document.head.appendChild(link);
+            let filename = path.split('?')[0];
+
+            let elements = document.querySelectorAll(`[src*='${filename}'], [href*='${filename}']`);
+            for (let i = 0; i < elements.length; i++) {
+                let element = elements[i];
+                console.log(element);
+                if (element.tagName === "LINK") {
+                    //css
+                    let link = document.createElement('link');
+                    link.setAttribute('href', path);
+                    link.setAttribute('rel', 'stylesheet');
+                    link.setAttribute('type', 'text/css');
+
+                    document.head.appendChild(link);
+                } else if (element.src) {
+                    element.src = path;
+                }
+            }
         } else {
             try {
                 const forms = document.querySelectorAll("form");
