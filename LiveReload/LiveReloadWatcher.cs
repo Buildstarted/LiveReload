@@ -10,10 +10,9 @@ namespace LiveReload
 {
     public class LiveReloadWatcher
     {
-        private LiveReloadOptions options;
+        private readonly LiveReloadOptions options;
         private bool started;
-        private string rootpath;
-        private ArraySegment<byte> refresh;
+        private readonly ArraySegment<byte> refresh;
 
         public LiveReloadWatcher(IOptions<LiveReloadOptions> options)
         {
@@ -32,7 +31,7 @@ namespace LiveReload
 
             foreach (var path in options.Paths)
             {
-                rootpath = Path.Combine(Environment.CurrentDirectory, path);
+                var rootpath = Path.Combine(Environment.CurrentDirectory, path);
 
                 if (Directory.Exists(rootpath))
                 {
@@ -57,8 +56,6 @@ namespace LiveReload
             {
                 if (path.EndsWith(extension, StringComparison.OrdinalIgnoreCase))
                 {
-                    var relativepath = path.Replace(rootpath, "");
-
                     var name = args.Name;
                     if (args.Name.StartsWith("wwwroot"))
                     {
