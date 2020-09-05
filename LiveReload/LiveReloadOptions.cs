@@ -1,4 +1,4 @@
-﻿namespace LiveReload.TagHelpers
+﻿namespace LiveReload
 {
     public class LiveReloadOptions
     {

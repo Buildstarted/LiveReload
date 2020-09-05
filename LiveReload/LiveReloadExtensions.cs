@@ -5,12 +5,13 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-namespace LiveReload.TagHelpers
+namespace LiveReload
 {
     public static class LiveReloadExtensions
     {
         public static IServiceCollection AddLiveReload(this IServiceCollection services)
         {
+            services.AddSingleton<LiveReloadWatcher>();
             services.AddSingleton<LiveReloadOptions>();
 
             return services;
@@ -35,6 +36,10 @@ namespace LiveReload.TagHelpers
                 if (context.Request.Path == options.Value.Url)
                 {
                     var livereloadwatcher = context.RequestServices.GetService<LiveReloadWatcher>();
+                    if (livereloadwatcher == null)
+                    {
+                        throw new InvalidOperationException("");
+                    }
                     livereloadwatcher.Start();
 
                     if (context.WebSockets.IsWebSocketRequest)
