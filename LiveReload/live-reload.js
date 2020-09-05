@@ -5,7 +5,12 @@
     let port = requestUrl.port;
     let protocol = requestUrl.protocol === 'https:' ? 'wss' : 'ws';
     let url = `${protocol}://${hostname}${port ? `:${port}` : ""}/live-reload`;
+
     let socket = new WebSocket(url);
+
+    const reconnect = () => {
+        socket = new WebSocket(url);
+    };
 
     const serializeForm = (form) => {
         let obj = {};
@@ -79,6 +84,7 @@
         }
     };
 
+    socket.onclose = (e) => { reconnect(); };
 
     //socket.onopen = (e) => {{ console.log('opened', e); }};
     //socket.onclose = (e) => {{ console.log('close', e); }};
