@@ -4,7 +4,7 @@
     //  url
     //  saveFormData
     //  inlineUpdatesWhenPossible
-
+    
     let requestUrl = new URL(window.location.href);
     let hostname = requestUrl.hostname;
     let port = requestUrl.port;
@@ -18,6 +18,30 @@
             obj[key] = formData.get(key);
         }
         return obj;
+    };
+
+    const saveFormData = () => {
+        const forms = document.querySelectorAll("form");
+        for (let i = 0; i < forms.length; i++) {
+            const form = forms[i];
+            window.localStorage.setItem(`__live-reload-form-data-${i}`, JSON.stringify(serializeForm(form)));
+        }
+    };
+
+    const updateElements = (data) => {
+        let path = data.split('|')[1];
+
+        let filename = path.split('?')[0];
+
+        let elements = document.querySelectorAll(`[src*='${filename}'], [href*='${filename}']`);
+        for (let i = 0; i < elements.length; i++) {
+            let element = elements[i];
+            if (element.href) {
+                element.href = path;
+            } else if (element.src) {
+                element.src = path;
+            }
+        }
     };
 
     if (live_reload_options.saveFormData) {
@@ -48,33 +72,11 @@
 
     const messageReceived = (e) => {
         if (e.data.startsWith('reload') && live_reload_options.inlineUpdatesWhenPossible) {
-            let path = e.data.split('|')[1];
-
-            let filename = path.split('?')[0];
-
-            let elements = document.querySelectorAll(`[src*='${filename}'], [href*='${filename}']`);
-            for (let i = 0; i < elements.length; i++) {
-                let element = elements[i];
-                if (element.tagName === "LINK") {
-                    //css
-                    let link = document.createElement('link');
-                    link.setAttribute('href', path);
-                    link.setAttribute('rel', 'stylesheet');
-                    link.setAttribute('type', 'text/css');
-
-                    document.head.appendChild(link);
-                } else if (element.src) {
-                    element.src = path;
-                }
-            }
+            updateElements(e.data);
         } else {
             try {
                 if (live_reload_options.saveFormData) {
-                    const forms = document.querySelectorAll("form");
-                    for (let i = 0; i < forms.length; i++) {
-                        const form = forms[i];
-                        window.localStorage.setItem(`__live-reload-form-data-${i}`, JSON.stringify(serializeForm(form)));
-                    }
+                    saveFormData();
                 }
             } catch (e) {
                 console.error(e);
