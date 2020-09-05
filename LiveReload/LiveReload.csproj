@@ -20,7 +20,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>TRACE;LOCALDEV</DefineConstants>
+    <DefineConstants>TRACE;LIVE_RELOAD_DEV</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,7 +29,7 @@
 
   <ItemGroup>
     <Content Include="live-reload.js">
-      <CopyToOutputDirectory Condition="$([System.Text.RegularExpressions.Regex]::IsMatch($(DefineConstants), '^(.*;)*LOCALDEV(;.*)*$'))">PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory Condition="$([System.Text.RegularExpressions.Regex]::IsMatch($(DefineConstants), '^(.*;)*LIVE_RELOAD_DEV(;.*)*$'))">PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 

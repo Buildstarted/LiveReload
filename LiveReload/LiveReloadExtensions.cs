@@ -36,7 +36,7 @@ namespace LiveReload
                 if (context.Request.Path == LiveReloadTagHelper.LiveReloadLocalScriptPath)
                 {
                     var options = builder.ApplicationServices.GetService<IOptions<LiveReloadOptions>>();
-#if LOCALDEV
+#if LIVE_RELOAD_DEV
                     if (options.Value.UseFile)
                     {
                         var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "live-reload.js");

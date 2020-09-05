@@ -10,7 +10,7 @@ namespace LiveReload
         public bool SaveFormData { get; set; }
         public bool InlineUpdatesWhenPossible { get; set; }
         public List<string> InlineUpdateExtensions { get; set; }
-#if LOCALDEV
+#if LIVE_RELOAD_DEV
         public bool UseFile { get; set; }
 #endif
 
