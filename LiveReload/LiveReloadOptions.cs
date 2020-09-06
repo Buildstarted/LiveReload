@@ -21,7 +21,7 @@ namespace LiveReload
             LiveReloadLocalScriptPath = "/live-reload/live-script.js";
             Url = "/live-reload";
             Paths = new List<string> { "./" };
-            Extensions = new List<string> { "cshtml", "css", "js" };
+            Extensions = new List<string> { "cshtml", "css", "js", "html" };
             InlineUpdateExtensions = new List<string> { "jpg", "png", "css", "mp4", "webm" };
             SaveFormData = false;
             InlineUpdatesWhenPossible = true;
