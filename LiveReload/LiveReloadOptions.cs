@@ -11,12 +11,14 @@ namespace LiveReload
         public bool SaveFormData { get; set; }
         public bool InlineUpdatesWhenPossible { get; set; }
         public List<string> InlineUpdateExtensions { get; set; }
-#if LIVE_RELOAD_DEV
+        public bool ReloadOnReconnect { get; set; }
+        public bool ShowStatusOnPage { get; set; }
         public string UseFile { get; set; }
-#endif
+        public string LiveReloadLocalScriptPath { get; set; }
 
         public LiveReloadOptions()
         {
+            LiveReloadLocalScriptPath = "/live-reload/live-script.js";
             Url = "/live-reload";
             Paths = new List<string> { "./" };
             Extensions = new List<string> { "cshtml", "css", "js" };
@@ -24,6 +26,19 @@ namespace LiveReload
             SaveFormData = false;
             InlineUpdatesWhenPossible = true;
             UseFile = null;
+            ShowStatusOnPage = false;
+            ReloadOnReconnect = false;
+        }
+
+        public string ToJavascriptString()
+        {
+            return "let live_reload_options = {" +
+                       $"url: '{Url}'," +
+                       $"saveFormData: {(SaveFormData ? "true" : "false")}," +
+                       $"showStatusOnPage: {(ShowStatusOnPage ? "true" : "false")}," +
+                       $"reloadOnReconnect: {(ReloadOnReconnect ? "true" : "false")}," +
+                       $"inlineUpdatesWhenPossible: {(InlineUpdatesWhenPossible ? "true" : "false")}" +
+                   "};";
         }
     }
 }

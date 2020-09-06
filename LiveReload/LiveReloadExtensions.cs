@@ -33,32 +33,31 @@ namespace LiveReload
 
             builder.Use(async (context, next) =>
             {
-                if (context.Request.Path == LiveReloadTagHelper.LiveReloadLocalScriptPath)
+                var options = builder.ApplicationServices.GetService<IOptions<LiveReloadOptions>>();
+                if (options?.Value != null)
                 {
-                    var options = builder.ApplicationServices.GetService<IOptions<LiveReloadOptions>>();
-#if LIVE_RELOAD_DEV
-                    if (options.Value.UseFile != null)
+                    if (context.Request.Path == options.Value.LiveReloadLocalScriptPath)
                     {
-                        var path = options.Value.UseFile;
-                        if (File.Exists(path))
+                        if (options.Value.UseFile != null)
                         {
-                            context.Response.ContentType = "application/javascript";
-                            using var file = File.OpenRead(path);
-                            var buffer = new byte[1024];
-                            var read = -1;
-                            while ((read = await file.ReadAsync(buffer, 0, 1024)) != 0)
+                            var path = options.Value.UseFile;
+                            if (File.Exists(path))
                             {
-                                await context.Response.Body.WriteAsync(buffer, 0, read);
+                                context.Response.ContentType = "application/javascript";
+                                await context.Response.SendFileAsync(path);
+                            }
+                            else
+                            {
+                                context.Response.StatusCode = 404;
                             }
 
                             return;
                         }
-                    }
-#endif
 
-                    context.Response.ContentType = "application/javascript";
-                    await context.Response.WriteAsync(Properties.Resources.live_reload);
-                    return;
+                        context.Response.ContentType = "application/javascript";
+                        await context.Response.WriteAsync(Properties.Resources.live_reload);
+                        return;
+                    }
                 }
 
                 await next();
@@ -67,33 +66,31 @@ namespace LiveReload
             builder.Use(async (context, next) =>
             {
                 var options = builder.ApplicationServices.GetService<IOptions<LiveReloadOptions>>();
-                if (context.Request.Path == options.Value.Url)
+                if (options?.Value != null)
                 {
-                    var livereloadwatcher = context.RequestServices.GetService<LiveReloadWatcher>();
-                    if (livereloadwatcher == null)
+                    if (context.Request.Path == options.Value.Url)
                     {
-                        throw new InvalidOperationException("");
-                    }
-                    livereloadwatcher.Start();
+                        var livereloadwatcher = context.RequestServices.GetService<LiveReloadWatcher>();
+                        if (livereloadwatcher == null)
+                        {
+                            throw new InvalidOperationException("");
+                        }
 
-                    if (context.WebSockets.IsWebSocketRequest)
-                    {
-#if LIVE_RELOAD_DEV
-                        Console.WriteLine($"[{DateTime.Now}] Connection started from {context.Connection.RemoteIpAddress}");
-#endif
-                        var socket = await context.WebSockets.AcceptWebSocketAsync();
-                        using var listener = new FileSocketListener(socket);
-                        await livereloadwatcher.Handle(listener);
-#if LIVE_RELOAD_DEV
-                        Console.WriteLine($"[{DateTime.Now}] Connection closed from {context.Connection.RemoteIpAddress}");
-#endif
-                    }
-                    else
-                    {
-                        context.Response.StatusCode = 400;
-                    }
+                        livereloadwatcher.Start();
 
-                    return;
+                        if (context.WebSockets.IsWebSocketRequest)
+                        {
+                            using var socket = await context.WebSockets.AcceptWebSocketAsync();
+                            using var listener = new FileSocketListener(socket);
+                            await livereloadwatcher.Handle(listener);
+                        }
+                        else
+                        {
+                            context.Response.StatusCode = 400;
+                        }
+
+                        return;
+                    }
                 }
 
                 await next();

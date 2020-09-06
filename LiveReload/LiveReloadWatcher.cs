@@ -19,7 +19,7 @@ namespace LiveReload
         private List<FileSystemWatcher> watchers;
 
         public event OnChangedDelegate OnChanged;
-        public delegate void OnChangedDelegate(int hash, ReadOnlySpan<char> filename, bool inlinereload);
+        public delegate void OnChangedDelegate(string filename, bool inlinereload);
 
         public LiveReloadWatcher(IOptions<LiveReloadOptions> options, IHostingEnvironment env)
         {
@@ -63,13 +63,12 @@ namespace LiveReload
                 if (args.FullPath.EndsWith(extension, StringComparison.OrdinalIgnoreCase))
                 {
                     var index = 0;
-                    //TODO: optimize this
-                    if (args.FullPath.AsSpan().StartsWith(env.WebRootPath.AsSpan()))
+                    if (args.FullPath.StartsWith(env.WebRootPath))
                     {
                         index = env.WebRootPath.Length;
                     }
 
-                    OnChanged?.Invoke(args.FullPath.GetHashCode(), args.FullPath.AsSpan(index), options.InlineUpdateExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase));
+                    OnChanged?.Invoke(args.FullPath.Substring(0, index), options.InlineUpdateExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase));
                     return;
                 }
             }
@@ -79,7 +78,6 @@ namespace LiveReload
         {
             OnChanged += listener.Update;
 
-            var lastping = DateTime.MinValue;
             while (listener.IsOpen)
             {
                 await listener.Receive();

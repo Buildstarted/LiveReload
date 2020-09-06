@@ -10,7 +10,6 @@ namespace LiveReload
     [HtmlTargetElement("live-reload", TagStructure = TagStructure.WithoutEndTag)]
     public class LiveReloadTagHelper : TagHelper
     {
-        public const string LiveReloadLocalScriptPath = "/live-reloader/live-script.js";
         private LiveReloadOptions options;
 
         public LiveReloadTagHelper(IOptions<LiveReloadOptions> options)
@@ -28,14 +27,7 @@ namespace LiveReload
 #endif
 
                 output.TagName = null;
-                output.Content.SetHtmlContent("<script>" +
-                        "let live_reload_options = {" +
-                            $"url: '{options.Url}'," +
-                            $"saveFormData: {options.SaveFormData.ToString().ToLower()}," +
-                            $"inlineUpdatesWhenPossible: {options.InlineUpdatesWhenPossible.ToString().ToLower()}" +
-                        "};" +
-                    "</script>" +
-                    @$"<script src='{LiveReloadLocalScriptPath}{randomid}'></script>");
+                output.Content.SetHtmlContent($"<script>{options.ToJavascriptString()}</script><script src='{options.LiveReloadLocalScriptPath}{randomid}'></script>");
             }
             catch (Exception e)
             {
