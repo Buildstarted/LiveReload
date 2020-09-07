@@ -15,6 +15,11 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 }
 ```
 
+### _ViewImports.cshtml
+```
+@addTagHelper *, LiveReload
+```
+
 ### _Layout.cshtml
 at the bottom of your cshtml file
 
